@@ -21,6 +21,7 @@ async function ddgSearch(query, { max = 20 } = {}) {
   const html = await http.get(url);
   const $ = cheerio.load(html);
   const results = [];
+  console.log('html', html);
   $('a.result__a').each((_, el) => {
     const title = $(el).text().trim();
     const hrefRaw = $(el).attr('href');
@@ -29,7 +30,6 @@ async function ddgSearch(query, { max = 20 } = {}) {
     const snippet = parent.find('.result__snippet').text().trim();
     if (href && title) results.push({ title, url: href, snippet });
   });
-  console.log('results', results);
   return results.slice(0, max);
 }
 
