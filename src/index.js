@@ -3,12 +3,7 @@ const fs = require('fs');
 const { URL } = require('url');
 require('dotenv').config();
 
-const { searchAll } = require('./sources/ddg');
-const { discoverSocialProfiles } = require('./sources/social');
-const { findNewsAndInterviews } = require('./sources/news');
-const { findPodcasts } = require('./sources/podcasts');
-const { lookupWayback } = require('./sources/wayback');
-const { generateReport } = require('./report/generate');
+const { runCollection } = require('./collect');
 
 function parseArgs() {
   const args = process.argv.slice(2);
@@ -57,28 +52,8 @@ async function main() {
   console.log(`[+] Subject: ${fullName}`);
   console.log(`[+] LinkedIn: ${args.linkedin}`);
 
-  const context = { fullName, linkedin: args.linkedin };
-
-  // Core pivots via search
-  const baseline = await searchAll(fullName, args.linkedin);
-  const social = await discoverSocialProfiles(fullName);
-  const news = await findNewsAndInterviews(fullName);
-  const podcasts = await findPodcasts(fullName);
-  const wayback = await lookupWayback(baseline.topDomains);
-
-  // Optional Companies House (UK)
   const companiesHouseKey = args.companiesHouseKey || process.env.COMPANIES_HOUSE_API_KEY || '';
-  let companies = { persons: [], companies: [] };
-  if (companiesHouseKey) {
-    try {
-      const { searchPersonsAndCompanies } = require('./sources/companiesHouse');
-      companies = await searchPersonsAndCompanies(fullName, companiesHouseKey);
-    } catch (e) {
-      console.warn(`[!] Companies House lookup failed: ${e.message}`);
-    }
-  }
-
-  const report = generateReport({ context, baseline, social, news, podcasts, wayback, companies });
+  const { report } = await runCollection({ fullName, linkedin: args.linkedin, companiesHouseKey });
   fs.writeFileSync(outPath, report, 'utf8');
   console.log(`[+] Report written: ${outPath}`);
 }

@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OSINT Dashboard</title>
+  <link rel="stylesheet" href="/styles.css" />
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <style>
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; margin: 24px; }
+    .card { max-width: 920px; margin: 0 auto; }
+    label { display:block; margin: 8px 0 4px; font-weight: 600; }
+    input { width: 100%; padding: 10px; font-size: 14px; }
+    button { margin-top: 12px; padding: 10px 16px; font-size: 14px; cursor: pointer; }
+    .row { display:flex; gap:16px; align-items: center; }
+    .muted { color:#666; font-size: 12px; }
+    .status { margin-top: 8px; }
+    .result { margin-top: 24px; padding: 16px; border: 1px solid #eee; border-radius: 8px; background: #fafafa; }
+    pre { white-space: pre-wrap; word-wrap: break-word; }
+  </style>
+  </head>
+<body>
+  <div class="card">
+    <h1>OSINT Dashboard</h1>
+    <p class="muted">Enter a LinkedIn profile URL and optionally a full name, then click Run.</p>
+    <label for="linkedin">LinkedIn URL</label>
+    <input id="linkedin" placeholder="https://www.linkedin.com/in/username/" />
+    <div class="row">
+      <div style="flex:1">
+        <label for="name">Full name (optional)</label>
+        <input id="name" placeholder="Full Name" />
+      </div>
+    </div>
+    <button id="runBtn">Run Collection</button>
+    <div class="status" id="status"></div>
+    <div class="result">
+      <div id="rendered"></div>
+      <details style="margin-top:12px">
+        <summary>View raw Markdown</summary>
+        <pre id="raw"></pre>
+      </details>
+    </div>
+  </div>
+
+  <script>
+    const runBtn = document.getElementById('runBtn');
+    const statusEl = document.getElementById('status');
+    const rawEl = document.getElementById('raw');
+    const renderedEl = document.getElementById('rendered');
+    const linkedinEl = document.getElementById('linkedin');
+    const nameEl = document.getElementById('name');
+
+    async function run() {
+      const linkedin = linkedinEl.value.trim();
+      const name = nameEl.value.trim();
+      if (!linkedin) { statusEl.textContent = 'Please enter a LinkedIn URL.'; return; }
+      statusEl.textContent = 'Working... this may take ~30-90 seconds';
+      runBtn.disabled = true;
+      renderedEl.innerHTML = '';
+      rawEl.textContent = '';
+      try {
+        const res = await fetch('/api/collect', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ linkedin, name })
+        });
+        if (!res.ok) {
+          const err = await res.json().catch(()=>({error: res.statusText}));
+          throw new Error(err.error || 'Request failed');
+        }
+        const data = await res.json();
+        rawEl.textContent = data.report || '';
+        renderedEl.innerHTML = window.marked.parse(data.report || '');
+        statusEl.textContent = `Done: ${data.fullName}`;
+      } catch (e) {
+        statusEl.textContent = `Error: ${e.message}`;
+      } finally {
+        runBtn.disabled = false;
+      }
+    }
+    runBtn.addEventListener('click', run);
+  </script>
+</body>
+</html>
+
+
