@@ -94,25 +94,30 @@
       const university = universityEl.value.trim();
       const gradYear = gradYearEl.value.trim();
       const fast = !!fastEl.checked;
+      console.log('[ui] submit', { hasLinkedin: !!linkedin, hasName: !!name, fast });
       if (!linkedin) { statusEl.textContent = 'Please enter a LinkedIn URL.'; return; }
       statusEl.textContent = 'Working... this may take ~30-90 seconds';
       runBtn.disabled = true;
       renderedEl.innerHTML = '';
       rawEl.textContent = '';
       try {
+        console.log('[ui] request -> /api/collect');
         const res = await fetch('/api/collect', {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ linkedin, name, company, title, location, university, gradYear, fast })
         });
         if (!res.ok) {
           const err = await res.json().catch(()=>({error: res.statusText}));
+          console.log('[ui] response error', err);
           throw new Error(err.error || 'Request failed');
         }
         const data = await res.json();
+        console.log('[ui] response ok', { bytes: (data.report||'').length });
         rawEl.textContent = data.report || '';
         renderedEl.innerHTML = window.marked.parse(data.report || '');
         statusEl.textContent = `Done: ${data.fullName}`;
       } catch (e) {
+        console.log('[ui] error', e);
         statusEl.textContent = `Error: ${e.message}`;
       } finally {
         runBtn.disabled = false;

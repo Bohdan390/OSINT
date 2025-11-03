@@ -3,6 +3,7 @@ const express = require('express');
 require('dotenv').config();
 
 const { runCollection } = require('./collect');
+const { logStep } = require('./utils/log');
 
 const app = express();
 app.use(express.json({ limit: '1mb' }));
@@ -20,6 +21,7 @@ app.post('/api/collect', async (req, res) => {
       gradYear: (req.body && req.body.gradYear) || '',
     };
     const fast = !!(req.body && req.body.fast);
+    logStep('api:collect:request', { linkedin: !!linkedin, name: !!name, fast, seedsPresent: Object.values(seeds).some(Boolean) });
     if (!linkedin) return res.status(400).json({ error: 'linkedin is required' });
     const fullName = name || (function nameFromLinkedin(linkedinUrl){
       try {
@@ -35,8 +37,10 @@ app.post('/api/collect', async (req, res) => {
     if (!fullName) return res.status(400).json({ error: 'unable to infer name; provide name' });
     const companiesHouseKey = process.env.COMPANIES_HOUSE_API_KEY || '';
     const data = await runCollection({ fullName, linkedin, companiesHouseKey, seeds, fast });
+    logStep('api:collect:response', { fullName, reportBytes: (data.report||'').length });
     return res.json({ ok: true, fullName, ...data });
   } catch (e) {
+    logStep('api:collect:error', { error: e.message || String(e) });
     return res.status(500).json({ ok: false, error: e.message || String(e) });
   }
 });

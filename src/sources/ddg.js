@@ -1,5 +1,6 @@
 const cheerio = require('cheerio');
 const { createHttp } = require('../utils/http');
+const { logStep } = require('../utils/log');
 
 const http = createHttp();
 
@@ -84,6 +85,7 @@ function strictFilter(results, fullName) {
 }
 
 async function searchAll(fullName, linkedinUrl) {
+  const s0 = Date.now();
   const orgs = ['Heist Studios','Supercritical','Engensa','Lumo','Bain & Company','Carbon13','Seedcamp'];
   const quoted = `"${fullName}"`;
   const queries = [
@@ -110,6 +112,7 @@ async function searchAll(fullName, linkedinUrl) {
 
   const allQueries = queries.concat(siteQueries);
   const chunks = [];
+  logStep('ddg:queries:begin', { count: allQueries.length });
   await Promise.all(allQueries.map(async (q) => {
     let res = [];
     try { res = await ddgSearch(q, { max: 12 }); } catch (_) {}
@@ -120,6 +123,7 @@ async function searchAll(fullName, linkedinUrl) {
   }));
   const results = strictFilter(uniqByUrl(chunks), fullName);
   const topDomains = getTopDomains(results);
+  logStep('ddg:queries:done', { ms: Date.now() - s0, results: results.length, domains: topDomains.length });
   return { results, topDomains };
 }
 
@@ -160,6 +164,8 @@ function buildSeededQueries(fullName, seeds, { fast = false } = {}) {
 async function searchAllSeeded(fullName, seeds = {}, { fast = false } = {}) {
   const allQueries = buildSeededQueries(fullName, seeds, { fast });
   const chunks = [];
+  const s1 = Date.now();
+  logStep('ddg:seeded:begin', { count: allQueries.length, fast });
   await Promise.all(allQueries.map(async (q) => {
     let res = [];
     try { res = await ddgSearch(q, { max: 10 }); } catch (_) {}
@@ -170,6 +176,7 @@ async function searchAllSeeded(fullName, seeds = {}, { fast = false } = {}) {
   }));
   const results = strictFilter(uniqByUrl(chunks), fullName);
   const topDomains = getTopDomains(results);
+  logStep('ddg:seeded:done', { ms: Date.now() - s1, results: results.length, domains: topDomains.length });
   return { results, topDomains };
 }
 

@@ -4,6 +4,7 @@ const { URL } = require('url');
 require('dotenv').config();
 
 const { runCollection } = require('./collect');
+const { logStep } = require('./utils/log');
 
 function parseArgs() {
   const args = process.argv.slice(2);
@@ -53,8 +54,10 @@ async function main() {
   console.log(`[+] LinkedIn: ${args.linkedin}`);
 
   const companiesHouseKey = args.companiesHouseKey || process.env.COMPANIES_HOUSE_API_KEY || '';
+  logStep('cli:collect:start', { fullName, linkedin: !!args.linkedin });
   const { report } = await runCollection({ fullName, linkedin: args.linkedin, companiesHouseKey });
   fs.writeFileSync(outPath, report, 'utf8');
+  logStep('cli:collect:written', { outPath, bytes: report.length });
   console.log(`[+] Report written: ${outPath}`);
 }
 
