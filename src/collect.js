@@ -15,15 +15,15 @@ async function runCollection({ fullName, linkedin, companiesHouseKey = '', seeds
   logStep('collect:baseline:done', { ms: Date.now() - t0, results: (baseline.results||[]).length, domains: (baseline.topDomains||[]).length });
 
   const t1 = Date.now();
-  const social = await discoverSocialProfiles(fullName);
+  const social = await discoverSocialProfiles(fullName, seeds);
   logStep('collect:social:done', { ms: Date.now() - t1, results: social.length });
 
+  const news = await findNewsAndInterviews(fullName, seeds);
   const t2 = Date.now();
-  const news = await findNewsAndInterviews(fullName);
   logStep('collect:news:done', { ms: Date.now() - t2, results: news.length });
 
   const t3 = Date.now();
-  const podcasts = await findPodcasts(fullName);
+  const podcasts = await findPodcasts(fullName, seeds);
   logStep('collect:podcasts:done', { ms: Date.now() - t3, results: podcasts.length });
 
   const t4 = Date.now();

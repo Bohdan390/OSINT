@@ -1,6 +1,6 @@
 const { ddgSearch } = require('./ddg');
 
-async function findNewsAndInterviews(fullName) {
+async function findNewsAndInterviews(fullName, seeds = {}) {
   const topics = [
     'interview', 'profile', 'feature', 'podcast', 'conference', 'fireside', 'panel', 'Q&A'
   ];
@@ -10,13 +10,17 @@ async function findNewsAndInterviews(fullName) {
   const out = [];
   for (const t of topics) {
     try {
-      const res = await ddgSearch(`${fullName} ${t}`, { max: 10 });
+      const extras = [seeds.company, seeds.title, seeds.location, seeds.university, seeds.gradYear].filter(Boolean).map(v => `"${v}"`).join(' ');
+      const q = extras ? `"${fullName}" ${t} ${extras}` : `"${fullName}" ${t}`;
+      const res = await ddgSearch(q, { max: 10 });
       out.push(...res);
     } catch (_) {}
   }
   for (const o of outlets) {
     try {
-      const res = await ddgSearch(`site:${o} "${fullName}"`, { max: 10 });
+      const extras = [seeds.company, seeds.title, seeds.location, seeds.university, seeds.gradYear].filter(Boolean).map(v => `"${v}"`).join(' ');
+      const q = extras ? `site:${o} "${fullName}" ${extras}` : `site:${o} "${fullName}"`;
+      const res = await ddgSearch(q, { max: 10 });
       out.push(...res);
     } catch (_) {}
   }
