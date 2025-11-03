@@ -18,10 +18,11 @@ function normalizeDuckUrl(href) {
 
 async function ddgSearch(query, { max = 20 } = {}) {
   const url = `https://duckduckgo.com/html/?q=${encodeURIComponent(query)}`;
+  console.log('url', url);
   const html = await http.get(url);
+  console.log('html', html);
   const $ = cheerio.load(html);
   const results = [];
-  console.log('html', html);
   $('a.result__a').each((_, el) => {
     const title = $(el).text().trim();
     const hrefRaw = $(el).attr('href');
