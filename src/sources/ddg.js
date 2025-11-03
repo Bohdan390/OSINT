@@ -29,6 +29,7 @@ async function ddgSearch(query, { max = 20 } = {}) {
     const snippet = parent.find('.result__snippet').text().trim();
     if (href && title) results.push({ title, url: href, snippet });
   });
+  console.log('results', results);
   return results.slice(0, max);
 }
 
