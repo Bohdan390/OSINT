@@ -1,4 +1,5 @@
 const { ddgSearch } = require('./ddg');
+const { buildSiteNameQuery, buildNameQuery } = require('../utils/query');
 
 async function findNewsAndInterviews(fullName, seeds = {}) {
   const topics = [
@@ -10,16 +11,16 @@ async function findNewsAndInterviews(fullName, seeds = {}) {
   const out = [];
   for (const t of topics) {
     try {
-      const extras = [seeds.company, seeds.title, seeds.location, seeds.university, seeds.gradYear].filter(Boolean).map(v => `"${v}"`).join(' ');
-      const q = extras ? `"${fullName}" ${t} ${extras}` : `"${fullName}" ${t}`;
+      const extrasArr = [seeds.company, seeds.title, seeds.location, seeds.university, seeds.gradYear].filter(Boolean);
+      const q = buildNameQuery(fullName, [t].concat(extrasArr));
       const res = await ddgSearch(q, { max: 10 });
       out.push(...res);
     } catch (_) {}
   }
   for (const o of outlets) {
     try {
-      const extras = [seeds.company, seeds.title, seeds.location, seeds.university, seeds.gradYear].filter(Boolean).map(v => `"${v}"`).join(' ');
-      const q = extras ? `site:${o} "${fullName}" ${extras}` : `site:${o} "${fullName}"`;
+      const extrasArr = [seeds.company, seeds.title, seeds.location, seeds.university, seeds.gradYear].filter(Boolean);
+      const q = buildSiteNameQuery(o, fullName, extrasArr);
       const res = await ddgSearch(q, { max: 10 });
       out.push(...res);
     } catch (_) {}

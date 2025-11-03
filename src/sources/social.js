@@ -1,4 +1,5 @@
 const { ddgSearch } = require('./ddg');
+const { buildSiteNameQuery } = require('../utils/query');
 
 async function discoverSocialProfiles(fullName, seeds = {}) {
   const sites = [
@@ -7,8 +8,8 @@ async function discoverSocialProfiles(fullName, seeds = {}) {
   const out = [];
   for (const s of sites) {
     try {
-      const extras = [seeds.company, seeds.title, seeds.location, seeds.university, seeds.gradYear].filter(Boolean).map(v => `"${v}"`).join(' ');
-      const q = extras ? `site:${s} "${fullName}" ${extras}` : `site:${s} "${fullName}"`;
+      const extrasArr = [seeds.company, seeds.title, seeds.location, seeds.university, seeds.gradYear].filter(Boolean);
+      const q = buildSiteNameQuery(s, fullName, extrasArr);
       const res = await ddgSearch(q, { max: 10 });
       out.push(...res);
     } catch (_) {}

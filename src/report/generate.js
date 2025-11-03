@@ -15,7 +15,7 @@ function dedupeUrls(items) {
   });
 }
 
-function generateReport({ context, baseline, social, news, podcasts, wayback, companies }) {
+function generateReport({ context, baseline, social, news, podcasts, wayback, companies, interests }) {
   const lines = [];
   lines.push(`# OSINT Brief: ${context.fullName}`);
   lines.push(`Generated: ${new Date().toISOString()}`);
@@ -35,6 +35,10 @@ function generateReport({ context, baseline, social, news, podcasts, wayback, co
   lines.push(section('Podcasts / Videos'));
   const podD = dedupeUrls(podcasts).map(r => `- [${r.title}](${r.url}) — ${r.snippet || ''}`);
   lines.push(podD.join('\n') || 'No podcasts found');
+
+  lines.push(section('Personal Interests & Hobbies'));
+  const interestsD = dedupeUrls(interests || []).map(r => `- [${r.title}](${r.url}) — ${r.snippet || ''}`);
+  lines.push(interestsD.join('\n') || 'No interest signals found');
 
   lines.push(section('Wayback Captures (by domain)'));
   for (const [host, caps] of Object.entries(wayback)) {

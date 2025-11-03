@@ -3,6 +3,7 @@ const { logStep } = require('./utils/log');
 const { discoverSocialProfiles } = require('./sources/social');
 const { findNewsAndInterviews } = require('./sources/news');
 const { findPodcasts } = require('./sources/podcasts');
+const { findInterests } = require('./sources/interests');
 const { lookupWayback } = require('./sources/wayback');
 const { generateReport } = require('./report/generate');
 
@@ -14,17 +15,21 @@ async function runCollection({ fullName, linkedin, companiesHouseKey = '', seeds
   const baseline = Object.keys(seeds).length ? await searchAllSeeded(fullName, seeds, { fast }) : await searchAll(fullName, linkedin);
   logStep('collect:baseline:done', { ms: Date.now() - t0, results: (baseline.results||[]).length, domains: (baseline.topDomains||[]).length });
 
-  // const t1 = Date.now();
-  // const social = await discoverSocialProfiles(fullName, seeds);
-  // logStep('collect:social:done', { ms: Date.now() - t1, results: social.length });
+  const t1 = Date.now();
+  const social = await discoverSocialProfiles(fullName, seeds);
+  logStep('collect:social:done', { ms: Date.now() - t1, results: social.length });
 
-  // const news = await findNewsAndInterviews(fullName, seeds);
-  // const t2 = Date.now();
-  // logStep('collect:news:done', { ms: Date.now() - t2, results: news.length });
+  const t2 = Date.now();
+  const news = await findNewsAndInterviews(fullName, seeds);
+  logStep('collect:news:done', { ms: Date.now() - t2, results: news.length });
 
-  // const t3 = Date.now();
-  // const podcasts = await findPodcasts(fullName, seeds);
-  // logStep('collect:podcasts:done', { ms: Date.now() - t3, results: podcasts.length });
+  const t3 = Date.now();
+  const podcasts = await findPodcasts(fullName, seeds);
+  logStep('collect:podcasts:done', { ms: Date.now() - t3, results: podcasts.length });
+
+  const t3b = Date.now();
+  const interests = await findInterests(fullName, seeds);
+  logStep('collect:interests:done', { ms: Date.now() - t3b, results: interests.length });
 
   const t4 = Date.now();
   const wayback = fast ? {} : await lookupWayback(baseline.topDomains || []);
@@ -41,12 +46,9 @@ async function runCollection({ fullName, linkedin, companiesHouseKey = '', seeds
   }
 
   const context = { fullName, linkedin };
-  const social = [];
-  const news = [];
-  const podcasts = [];
-  const report = generateReport({ context, baseline, social, news, podcasts, wayback, companies });
+  const report = generateReport({ context, baseline, social, news, podcasts, wayback, companies, interests });
   logStep('collect:report:generated', { ms: Date.now() - started, bytes: report.length });
-  return { report, context, baseline, social, news, podcasts, wayback, companies };
+  return { report, context, baseline, social, news, podcasts, wayback, companies, interests };
 }
 
 module.exports = { runCollection };
