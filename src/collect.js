@@ -7,10 +7,15 @@ const { generateReport } = require('./report/generate');
 
 async function runCollection({ fullName, linkedin, companiesHouseKey = '' }) {
   const baseline = await searchAll(fullName, linkedin);
+  console.log('baseline', baseline);
   const social = await discoverSocialProfiles(fullName);
+  console.log('social', social);
   const news = await findNewsAndInterviews(fullName);
+  console.log('news', news);
   const podcasts = await findPodcasts(fullName);
+  console.log('podcasts', podcasts);
   const wayback = await lookupWayback(baseline.topDomains || []);
+  console.log('wayback', wayback);
 
   let companies = { persons: [], companies: [] };
   if (companiesHouseKey) {

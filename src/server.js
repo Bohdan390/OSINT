@@ -26,6 +26,9 @@ app.post('/api/collect', async (req, res) => {
     })(linkedin);
     if (!fullName) return res.status(400).json({ error: 'unable to infer name; provide name' });
     const companiesHouseKey = process.env.COMPANIES_HOUSE_API_KEY || '';
+    console.log('fullName', fullName);
+    console.log('linkedin', linkedin);
+    console.log('companiesHouseKey', companiesHouseKey);
     const data = await runCollection({ fullName, linkedin, companiesHouseKey });
     return res.json({ ok: true, fullName, ...data });
   } catch (e) {
