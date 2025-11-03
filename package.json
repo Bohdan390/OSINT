@@ -1,0 +1,31 @@
+{
+  "name": "osint",
+  "version": "1.0.0",
+  "description": "OSINT CLI to build public profiles from a LinkedIn seed (JS only)",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "collect": "node src/index.js",
+    "test": "echo \"No tests\""
+  },
+  "keywords": [
+    "osint",
+    "cli",
+    "people-search"
+  ],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "cheerio": "^1.1.2",
+    "dotenv": "^17.2.3",
+    "got": "^14.6.2",
+    "p-queue": "^9.0.0",
+    "zod": "^4.1.12"
+  },
+  "devDependencies": {
+    "@types/node": "^24.10.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3"
+  }
+}
