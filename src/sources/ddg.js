@@ -19,8 +19,8 @@ function normalizeDuckUrl(href) {
 
 async function ddgSearch(query, { max = 20 } = {}) {
   const url = `https://duckduckgo.com/html/?q=${encodeURIComponent(query)}`;
-  const html = await http.get(url);
   console.log('url', url);
+  const html = await http.get(url);
   const $ = cheerio.load(html);
   const results = [];
   $('a.result__a').each((_, el) => {
