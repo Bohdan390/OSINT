@@ -30,6 +30,35 @@
         <label for="name">Full name (optional)</label>
         <input id="name" placeholder="Full Name" />
       </div>
+      <div style="flex:1">
+        <label for="company">Company (optional)</label>
+        <input id="company" placeholder="Atmospheric" />
+      </div>
+    </div>
+    <div class="row">
+      <div style="flex:1">
+        <label for="title">Title (optional)</label>
+        <input id="title" placeholder="Co-Founder + COO" />
+      </div>
+      <div style="flex:1">
+        <label for="location">Location (optional)</label>
+        <input id="location" placeholder="Lisbon, Portugal" />
+      </div>
+    </div>
+    <div class="row">
+      <div style="flex:1">
+        <label for="university">University (optional)</label>
+        <input id="university" placeholder="University of Cambridge" />
+      </div>
+      <div style="flex:1">
+        <label for="gradYear">Grad year (optional)</label>
+        <input id="gradYear" placeholder="2004" />
+      </div>
+    </div>
+    <div class="row">
+      <label style="display:flex;align-items:center;gap:8px">
+        <input type="checkbox" id="fast" /> Fast mode (skip slow steps)
+      </label>
     </div>
     <button id="runBtn">Run Collection</button>
     <div class="status" id="status"></div>
@@ -49,10 +78,22 @@
     const renderedEl = document.getElementById('rendered');
     const linkedinEl = document.getElementById('linkedin');
     const nameEl = document.getElementById('name');
+    const companyEl = document.getElementById('company');
+    const titleEl = document.getElementById('title');
+    const locationEl = document.getElementById('location');
+    const universityEl = document.getElementById('university');
+    const gradYearEl = document.getElementById('gradYear');
+    const fastEl = document.getElementById('fast');
 
     async function run() {
       const linkedin = linkedinEl.value.trim();
       const name = nameEl.value.trim();
+      const company = companyEl.value.trim();
+      const title = titleEl.value.trim();
+      const location = locationEl.value.trim();
+      const university = universityEl.value.trim();
+      const gradYear = gradYearEl.value.trim();
+      const fast = !!fastEl.checked;
       if (!linkedin) { statusEl.textContent = 'Please enter a LinkedIn URL.'; return; }
       statusEl.textContent = 'Working... this may take ~30-90 seconds';
       runBtn.disabled = true;
@@ -61,7 +102,7 @@
       try {
         const res = await fetch('/api/collect', {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ linkedin, name })
+          body: JSON.stringify({ linkedin, name, company, title, location, university, gradYear, fast })
         });
         if (!res.ok) {
           const err = await res.json().catch(()=>({error: res.statusText}));

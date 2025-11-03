@@ -12,6 +12,14 @@ app.post('/api/collect', async (req, res) => {
   try {
     const linkedin = (req.body && req.body.linkedin) || '';
     const name = (req.body && req.body.name) || '';
+    const seeds = {
+      location: (req.body && req.body.location) || '',
+      company: (req.body && req.body.company) || '',
+      title: (req.body && req.body.title) || '',
+      university: (req.body && req.body.university) || '',
+      gradYear: (req.body && req.body.gradYear) || '',
+    };
+    const fast = !!(req.body && req.body.fast);
     if (!linkedin) return res.status(400).json({ error: 'linkedin is required' });
     const fullName = name || (function nameFromLinkedin(linkedinUrl){
       try {
@@ -26,10 +34,7 @@ app.post('/api/collect', async (req, res) => {
     })(linkedin);
     if (!fullName) return res.status(400).json({ error: 'unable to infer name; provide name' });
     const companiesHouseKey = process.env.COMPANIES_HOUSE_API_KEY || '';
-    console.log('fullName', fullName);
-    console.log('linkedin', linkedin);
-    console.log('companiesHouseKey', companiesHouseKey);
-    const data = await runCollection({ fullName, linkedin, companiesHouseKey });
+    const data = await runCollection({ fullName, linkedin, companiesHouseKey, seeds, fast });
     return res.json({ ok: true, fullName, ...data });
   } catch (e) {
     return res.status(500).json({ ok: false, error: e.message || String(e) });

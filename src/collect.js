@@ -1,12 +1,12 @@
-const { searchAll } = require('./sources/ddg');
+const { searchAll, searchAllSeeded } = require('./sources/ddg');
 const { discoverSocialProfiles } = require('./sources/social');
 const { findNewsAndInterviews } = require('./sources/news');
 const { findPodcasts } = require('./sources/podcasts');
 const { lookupWayback } = require('./sources/wayback');
 const { generateReport } = require('./report/generate');
 
-async function runCollection({ fullName, linkedin, companiesHouseKey = '' }) {
-  const baseline = await searchAll(fullName, linkedin);
+async function runCollection({ fullName, linkedin, companiesHouseKey = '', seeds = {}, fast = false }) {
+  const baseline = Object.keys(seeds).length ? await searchAllSeeded(fullName, seeds, { fast }) : await searchAll(fullName, linkedin);
   console.log('baseline', baseline);
   const social = await discoverSocialProfiles(fullName);
   console.log('social', social);
@@ -14,11 +14,11 @@ async function runCollection({ fullName, linkedin, companiesHouseKey = '' }) {
   console.log('news', news);
   const podcasts = await findPodcasts(fullName);
   console.log('podcasts', podcasts);
-  const wayback = await lookupWayback(baseline.topDomains || []);
+  const wayback = fast ? {} : await lookupWayback(baseline.topDomains || []);
   console.log('wayback', wayback);
 
   let companies = { persons: [], companies: [] };
-  if (companiesHouseKey) {
+  if (companiesHouseKey && !fast) {
     try {
       const { searchPersonsAndCompanies } = require('./sources/companiesHouse');
       companies = await searchPersonsAndCompanies(fullName, companiesHouseKey);

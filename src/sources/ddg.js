@@ -18,9 +18,7 @@ function normalizeDuckUrl(href) {
 
 async function ddgSearch(query, { max = 20 } = {}) {
   const url = `https://duckduckgo.com/html/?q=${encodeURIComponent(query)}`;
-  console.log('url', url);
   const html = await http.get(url);
-  console.log('html', html);
   const $ = cheerio.load(html);
   const results = [];
   $('a.result__a').each((_, el) => {
@@ -112,23 +110,69 @@ async function searchAll(fullName, linkedinUrl) {
 
   const allQueries = queries.concat(siteQueries);
   const chunks = [];
-  for (const q of allQueries) {
+  await Promise.all(allQueries.map(async (q) => {
     let res = [];
-    try {
-      res = await ddgSearch(q, { max: 15 });
-    } catch (_) {}
+    try { res = await ddgSearch(q, { max: 12 }); } catch (_) {}
     if (!res || res.length === 0) {
-      try {
-        res = await ddgLiteSearch(q, { max: 15 });
-      } catch (_) {}
+      try { res = await ddgLiteSearch(q, { max: 12 }); } catch (_) {}
     }
     if (res && res.length) chunks.push(...res);
-  }
+  }));
   const results = strictFilter(uniqByUrl(chunks), fullName);
   const topDomains = getTopDomains(results);
   return { results, topDomains };
 }
 
-module.exports = { ddgSearch, ddgLiteSearch, searchAll };
+function buildSeededQueries(fullName, seeds, { fast = false } = {}) {
+  const q = `"${fullName}"`;
+  const queries = [];
+  if (seeds.company) {
+    queries.push(`${q} "${seeds.company}"`);
+    if (seeds.title) queries.push(`${q} "${seeds.company}" "${seeds.title}"`);
+  }
+  if (seeds.location) queries.push(`${q} "${seeds.location}"`);
+  if (seeds.university) {
+    queries.push(`${q} "${seeds.university}"`);
+    if (seeds.gradYear) queries.push(`${q} "${seeds.university}" ${seeds.gradYear}`);
+  }
+  const socials = [
+    `site:twitter.com ${q}`,
+    `site:x.com ${q}`,
+    `site:instagram.com ${q}`,
+    `site:youtube.com ${q}`,
+    `site:medium.com ${q}`,
+    `site:substack.com ${q}`,
+  ];
+  const news = [
+    `${q} interview`,
+    `${q} podcast`,
+    `${q} profile`,
+  ];
+  const companies = [
+    `site:find-and-update.company-information.service.gov.uk ${q}`,
+    `site:opencorporates.com ${q}`,
+  ];
+  let all = queries.concat(socials, news, companies);
+  if (fast) all = all.slice(0, 10);
+  return all;
+}
+
+async function searchAllSeeded(fullName, seeds = {}, { fast = false } = {}) {
+  const allQueries = buildSeededQueries(fullName, seeds, { fast });
+  const chunks = [];
+  await Promise.all(allQueries.map(async (q) => {
+    let res = [];
+    try { res = await ddgSearch(q, { max: 10 }); } catch (_) {}
+    if (!res || res.length === 0) {
+      try { res = await ddgLiteSearch(q, { max: 10 }); } catch (_) {}
+    }
+    if (res && res.length) chunks.push(...res);
+  }));
+  const results = strictFilter(uniqByUrl(chunks), fullName);
+  const topDomains = getTopDomains(results);
+  return { results, topDomains };
+}
+
+module.exports = { ddgSearch, ddgLiteSearch, searchAll, buildSeededQueries, searchAllSeeded };
 
 
